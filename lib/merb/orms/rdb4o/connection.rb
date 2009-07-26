@@ -1,12 +1,11 @@
 require 'fileutils'
-require 'rdb4o'
 
 module Merb
   module Orms
     module Rdb4o
       class << self
-        def config_file() Merb.root / "config" / "database.yml" end
-        def sample_dest() Merb.root / "config" / "database.yml.sample" end
+        def config_file() Merb.dir_for(:config) / "database.yml" end
+        def sample_dest() Merb.dir_for(:config) / "database.yml.sample" end
         def sample_source() File.dirname(__FILE__) / "database.yml.sample" end
       
         def copy_sample_config
@@ -19,12 +18,8 @@ module Merb
               # Convert string keys to symbols
               full_config = Erubis.load_yaml_file(config_file)
               config = (Merb::Plugins.config[:merb_db4o] = {})
-              (full_config[Merb.environment.to_sym] || full_config[Merb.environment]).each do |k, v| 
-                if k == 'port'
-                  config[k.to_sym] = v.to_i
-                else
-                  config[k.to_sym] = v
-                end
+              (full_config[Merb.environment.to_sym] || full_config[Merb.environment]).each do |key, value| 
+                config[key.to_sym] = value
               end
               config
             end
@@ -34,6 +29,8 @@ module Merb
         def connect
           if File.exists?(config_file)
             Merb.logger.info!("Connecting to database...")
+            ::Rdb4o.load_models
+            Dir[Merb.root / "app/models/**/*.rb"].each {|f| require f }
             ::Rdb4o::Database.setup(config)
           else
             copy_sample_config
@@ -43,17 +40,17 @@ module Merb
           end
         end
         
-        def start_server
-          ::Rdb4o::Database.setup_server(config)
-        end
+        # def start_server
+        #   ::Rdb4o::Database.setup_server(config)
+        # end
         
         # Registering this ORM lets the user choose DataMapper as a session store
         # in merb.yml's session_store: option.
-        def register_session_type
-          Merb.register_session_type("rdb4o",
-          "merb/session/rdb4o_session",
-          "Using rdb4o database sessions")
-        end
+        # def register_session_type
+        #   Merb.register_session_type("rdb4o",
+        #   "merb/session/rdb4o_session",
+        #   "Using rdb4o database sessions")
+        # end
       end
     end
   end

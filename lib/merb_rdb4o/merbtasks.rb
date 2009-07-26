@@ -29,12 +29,19 @@ namespace :rdb4o do
     
   end
   
-  desc "Export CLASSPATH"
+  desc "Run 'merb'"
   task :merb do
-    
-    # puts ARGV.inspect
     require 'rdb4o'
-    system "CLASSPATH=#{Rdb4o.jar_classpath}/db4o.jar:#{Rdb4o.jar_classpath}/rdb4o.jar:. merb"
-    
+    cmd = "CLASSPATH=#{Rdb4o.jar_classpath}/db4o.jar:#{Rdb4o.jar_classpath}/rdb4o.jar:. jruby -S merb"
+    puts cmd
+    system cmd
+  end
+  
+  desc "Run 'merb -i'"
+  task :merb_i do
+    require 'rdb4o'
+    cmd = "CLASSPATH=#{Rdb4o.jar_classpath}/db4o.jar:#{Rdb4o.jar_classpath}/rdb4o.jar:. jruby -S merb -i"
+    puts cmd
+    system 
   end
 end
